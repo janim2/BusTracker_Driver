@@ -6,9 +6,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -20,6 +23,11 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.RadioButton;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -46,6 +54,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -62,15 +72,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Geocoder geocoder;
     private LocationRequest mLocationRequest;
     private Accessories mapsAccessor;
+    private TextView today_date, busStatus_text;
+    private Button start_trip;
+    private String button_toggle = "0",school_code, driver_code;
+    private RadioButton securityRbutton, distressRbutton, goodRbutton;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-
-        getSupportActionBar().setTitle("Name | Driver");
         mapsAccessor = new Accessories(MapsActivity.this);
+
+        school_code = mapsAccessor.getString("school_code");
+        driver_code = mapsAccessor.getString("driver_code");
+
+        getSupportActionBar().setTitle(mapsAccessor.getString("driver_fname")+" | Driver");
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -82,6 +99,39 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }else{
             mapFragment.getMapAsync(this);
         }
+
+        Typeface lovelo =Typeface.createFromAsset(getAssets(),  "fonts/lovelo.ttf");
+
+        today_date = findViewById(R.id.today_date);
+        start_trip = findViewById(R.id.start_trip);
+        busStatus_text = findViewById(R.id.bus_status_text);
+        securityRbutton = findViewById(R.id.security_radio);
+        distressRbutton = findViewById(R.id.distress_radio);
+        goodRbutton = findViewById(R.id.good_radio);
+
+        today_date.setTypeface(lovelo);
+        start_trip.setTypeface(lovelo);
+//        busStatus_text.setTypeface(lovelo);
+//        securityRbutton.setTypeface(lovelo);
+//        distressRbutton.setTypeface(lovelo);
+//        goodRbutton.setTypeface(lovelo);
+
+        Date date = new Date();
+        today_date.setText(DateFormat.getDateInstance(DateFormat.FULL).format(date));
+
+        start_trip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(button_toggle.equals("0")){
+                    button_toggle = "1";
+                    start_trip.setText("IN PROGRESS");
+                }
+                else if(button_toggle.equals("1")){
+                    button_toggle = "0";
+                    start_trip.setText("START TRIP");
+                }
+            }
+        });
     }
 
     /**
@@ -142,6 +192,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 //                        logout here
+                        if(isNetworkAvailable()){
+                            FirebaseAuth.getInstance().signOut();
+                            mapsAccessor.put("isverified", false);
+                            mapsAccessor.clearStore();
+                            startActivity(new Intent(MapsActivity.this,Phone_number_Verification.class));
+                        }else{
+                            Toast.makeText(MapsActivity.this,"No internet connection",Toast.LENGTH_LONG).show();
+                        }
                     }
                 });
 
@@ -239,6 +297,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+//    initial state of location changed
+//
     @Override
     public void onLocationChanged(Location location) {
         mLastLocation = location;
@@ -268,6 +328,41 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+//    @Override
+//    public void onLocationChanged(Location location) {
+//        mLastLocation = location;
+//        LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+//        try {
+//            address = geocoder.getFromLocation(location.getLatitude(),location.getLongitude(),1);
+////            userlocation.setText(address.get(0).getAddressLine(0));
+//
+//            //        update location of driver
+//            try{
+//                String  userid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+//                DatabaseReference drivers = FirebaseDatabase.getInstance().getReference("bus_details").child(school_code).child("bus001");
+//                GeoFire geoFireAvailable = new GeoFire(drivers);
+//
+//                geoFireAvailable.setLocation(driver_code, new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
+//                    @Override
+//                    public void onComplete(String s, DatabaseError databaseError) {
+//                    }
+//                });
+//            }catch (NullPointerException e){
+//                e.printStackTrace();
+//            }
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
 
 }
 

@@ -3,6 +3,7 @@ package com.example.sergeherkul.bustracker_driver;
 import android.graphics.Typeface;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 public class Profile extends AppCompatActivity {
@@ -14,11 +15,15 @@ public class Profile extends AppCompatActivity {
     theschool_email, theschoolnumber, theschool_location, thebus_brand, thebus_model, thebus_chasis,
     thebusnumber_plate;
 
+    Accessories profileAccessor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
         getSupportActionBar().setTitle("Profile");
+
+        profileAccessor = new Accessories(Profile.this);
 
         Typeface lovelo =Typeface.createFromAsset(getAssets(),  "fonts/lovelo.ttf");
 
@@ -65,5 +70,19 @@ public class Profile extends AppCompatActivity {
         bus_model.setTypeface(lovelo);
         bus_chasis.setTypeface(lovelo);
         busnumber_plate.setTypeface(lovelo);
+
+        //setting the neccessary values
+//        driver
+        thedrivername.setText(profileAccessor.getString("driver_fname")+" "+profileAccessor.getString("driver_lname"));
+        thedriverphone_number.setText(profileAccessor.getString("driver_pnumber"));
+        thedriveraddress.setText(profileAccessor.getString("driver_address"));
+
+//        school
+        theschoolname.setText(profileAccessor.getString("school_name"));
+        theschoolnumber.setText(profileAccessor.getString("school_telephone"));
+        theschool_location.setText(profileAccessor.getString("school_location"));
+        theschool_email.setText(profileAccessor.getString("school_email"));
+
+
     }
 }

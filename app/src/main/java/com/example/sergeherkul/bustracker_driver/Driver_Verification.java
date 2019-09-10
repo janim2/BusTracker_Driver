@@ -32,7 +32,8 @@ public class Driver_Verification extends AppCompatActivity {
     private ProgressBar loading,login_loading;
     private Button next_button;
     private ImageView back;
-    private String sdriver_code,sfirst_name,slastname,saddress,sphone_number;
+    private String sdriver_code,sfirst_name,slastname,saddress,sphone_number,sschoolname,sschoolemail,
+    ssechoollocation, sschoolphone;
     private Accessories driver_verification_accessor;
 
     @Override
@@ -330,6 +331,7 @@ public class Driver_Verification extends AppCompatActivity {
                         for(DataSnapshot child : dataSnapshot.getChildren()){
 //                            FetchParts(child.getKey(), which_item);
                             if(thecode.equals(child.getKey())){
+                                driver_verification_accessor.put("school_code",child.getKey());
                                 loading.setVisibility(View.GONE);
                                 code_verified.setVisibility(View.VISIBLE);
                                 code_verified.setTextColor(getResources().getColor(R.color.green));
@@ -337,6 +339,7 @@ public class Driver_Verification extends AppCompatActivity {
                                 next_button.setText("Verify Me");
 
                                 getdriverinformation(child.getKey());
+                                getSchoolinformation(child.getKey());
 
                                 next_button.setOnClickListener(new View.OnClickListener() {
                                     @Override
@@ -370,6 +373,40 @@ public class Driver_Verification extends AppCompatActivity {
         }catch (NullPointerException e){
 
         }
+    }
+
+    private void getSchoolinformation(String key) {
+        DatabaseReference school_details = FirebaseDatabase.getInstance().getReference("schools").child(key);
+        school_details.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+                    for(DataSnapshot child : dataSnapshot.getChildren()){
+                        if(child.getKey().equals("email")){
+                            sschoolemail = child.getValue().toString();
+                            driver_verification_accessor.put("school_email",sschoolemail);
+                        }
+                        if(child.getKey().equals("location")){
+                            ssechoollocation = child.getValue().toString();
+                            driver_verification_accessor.put("school_location",ssechoollocation);
+                        }
+                        if(child.getKey().equals("name")){
+                            sschoolname = child.getValue().toString();
+                            driver_verification_accessor.put("school_name",sschoolname);
+                        }
+                        if(child.getKey().equals("telephone")){
+                            sschoolphone = child.getValue().toString();
+                            driver_verification_accessor.put("school_telephone",sschoolphone);
+                        }
+                }
+            }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void getdriverinformation(final String key) {
