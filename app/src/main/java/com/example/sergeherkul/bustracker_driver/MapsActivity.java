@@ -2,6 +2,7 @@ package com.example.sergeherkul.bustracker_driver;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -13,7 +14,12 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -43,7 +49,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener{
 
@@ -55,12 +61,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private List<Address> address;
     private Geocoder geocoder;
     private LocationRequest mLocationRequest;
+    private Accessories mapsAccessor;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        getSupportActionBar().setTitle("Name | Driver");
+        mapsAccessor = new Accessories(MapsActivity.this);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -105,6 +115,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .addOnConnectionFailedListener(this).addApi(LocationServices.API
         ).build();
         mGoogleApiClient.connect();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.profile:
+                startActivity(new Intent(MapsActivity.this,Profile.class));
+                break;
+
+            case R.id.notifications:
+                startActivity(new Intent(MapsActivity.this,Notifications.class));
+                break;
+
+            case R.id.logout:
+                final AlertDialog.Builder logout = new AlertDialog.Builder(MapsActivity.this, R.style.Myalert);
+                logout.setTitle("Logging Out?");
+                logout.setMessage("Leaving us? Your child's safety is our number one concern. Please reconsider.");
+                logout.setNegativeButton("Logout", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+//                        logout here
+                    }
+                });
+
+                logout.setPositiveButton("Stay", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+                logout.show();
+
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void displayLocationSettingsRequest(Context context) {
@@ -153,9 +204,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onStart() {
         super.onStart();
         if(FirebaseAuth.getInstance().getCurrentUser() != null){
-            displayLocationSettingsRequest(MapsActivity.this);
+            if(mapsAccessor.getBoolean("isverified")){
+                displayLocationSettingsRequest(MapsActivity.this);
+            }else{
+                startActivity(new Intent(MapsActivity.this, Driver_Verification.class));
+            }
         }else{
-            startActivity(new Intent(MapsActivity.this, Login.class));
+            startActivity(new Intent(MapsActivity.this, Phone_number_Verification.class));
         }
     }
 
@@ -194,15 +249,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //            userlocation.setText(address.get(0).getAddressLine(0));
 
             //        update location of driver
-            String  userid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            DatabaseReference drivers = FirebaseDatabase.getInstance().getReference("bus");
-            GeoFire geoFireAvailable = new GeoFire(drivers);
+            try{
+                String  userid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                DatabaseReference drivers = FirebaseDatabase.getInstance().getReference("bus");
+                GeoFire geoFireAvailable = new GeoFire(drivers);
 
-            geoFireAvailable.setLocation(userid, new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
-                @Override
-                public void onComplete(String s, DatabaseError databaseError) {
-                }
-            });
+                geoFireAvailable.setLocation(userid, new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
+                    @Override
+                    public void onComplete(String s, DatabaseError databaseError) {
+                    }
+                });
+            }catch (NullPointerException e){
+                e.printStackTrace();
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
