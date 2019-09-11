@@ -83,6 +83,11 @@ public class Profile extends AppCompatActivity {
         theschool_location.setText(profileAccessor.getString("school_location"));
         theschool_email.setText(profileAccessor.getString("school_email"));
 
+        //bus
+        thebus_brand.setText(profileAccessor.getString("bus_brand"));
+        thebus_model.setText(profileAccessor.getString("bus_chasis_no"));
+        thebus_chasis.setText(profileAccessor.getString("bus_model"));
+        thebusnumber_plate.setText(profileAccessor.getString("bus_number_plate"));
 
     }
 }

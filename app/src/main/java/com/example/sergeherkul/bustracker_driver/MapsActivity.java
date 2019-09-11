@@ -340,7 +340,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //            //        update location of driver
 //            try{
 //                String  userid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-//                DatabaseReference drivers = FirebaseDatabase.getInstance().getReference("bus_details").child(school_code).child("bus001");
+//                DatabaseReference drivers = FirebaseDatabase.getInstance().getReference("bus_details").child(school_code);
 //                GeoFire geoFireAvailable = new GeoFire(drivers);
 //
 //                geoFireAvailable.setLocation(driver_code, new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {

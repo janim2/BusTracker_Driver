@@ -325,6 +325,12 @@ public class Enter_phone_number extends AppCompatActivity {
 
             loading.setVisibility(View.GONE);
             number_sent_success.setVisibility(View.VISIBLE);
+            code_one.setEnabled(true);
+            code_two.setEnabled(true);
+            code_three.setEnabled(true);
+            code_four.setEnabled(true);
+            code_five.setEnabled(true);
+            code_six.setEnabled(true);
             next.setText("VERIFY CODE");
             // Save verification ID and resending token so we can use them later
             mVerificationId = verificationId;

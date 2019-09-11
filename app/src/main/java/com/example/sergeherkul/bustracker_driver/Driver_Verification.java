@@ -24,6 +24,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.sql.Driver;
+
 public class Driver_Verification extends AppCompatActivity {
 
     private TextView final_step_text,code_verified,login_text,login_text_details, driver_code_verified;
@@ -33,7 +35,7 @@ public class Driver_Verification extends AppCompatActivity {
     private Button next_button;
     private ImageView back;
     private String sdriver_code,sfirst_name,slastname,saddress,sphone_number,sschoolname,sschoolemail,
-    ssechoollocation, sschoolphone;
+    ssechoollocation, sschoolphone,sbrand, sbus_code, schasis_no, smodel, snumber_plate;
     private Accessories driver_verification_accessor;
 
     @Override
@@ -293,6 +295,7 @@ public class Driver_Verification extends AppCompatActivity {
                                         driver_code_verified.setText("Code Verification Complete");
                                         driver_verification_accessor.put("isverified",true);
                                         startActivity(new Intent(Driver_Verification.this,MapsActivity.class));
+                                        getBusInformation(driver_verification_accessor.getString("school_code"),driver_verification_accessor.getString("driver_code"));
                                     }else{
                                         loading.setVisibility(View.GONE);
                                         driver_code_verified.setVisibility(View.VISIBLE);
@@ -337,6 +340,11 @@ public class Driver_Verification extends AppCompatActivity {
                                 code_verified.setTextColor(getResources().getColor(R.color.green));
                                 code_verified.setText("Code Verification Complete");
                                 next_button.setText("Verify Me");
+                                driver_code_one.setEnabled(true);
+                                driver_code_two.setEnabled(true);
+                                driver_code_three.setEnabled(true);
+                                driver_code_four.setEnabled(true);
+                                driver_code_five.setEnabled(true);
 
                                 getdriverinformation(child.getKey());
                                 getSchoolinformation(child.getKey());
@@ -373,6 +381,45 @@ public class Driver_Verification extends AppCompatActivity {
         }catch (NullPointerException e){
 
         }
+    }
+
+    private void getBusInformation(String schoolcode, String drivercode) {
+        DatabaseReference school_details = FirebaseDatabase.getInstance().getReference("bus_details").child(schoolcode).child(drivercode);
+        school_details.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+                    for(DataSnapshot child : dataSnapshot.getChildren()){
+                        if(child.getKey().equals("brand")){
+                            sbrand = child.getValue().toString();
+                            driver_verification_accessor.put("bus_brand",sbrand);
+                        }
+                        if(child.getKey().equals("bus_code")){
+                            sbus_code = child.getValue().toString();
+                            driver_verification_accessor.put("bus_code",sbus_code);
+                        }
+                        if(child.getKey().equals("chasis_no")){
+                            schasis_no = child.getValue().toString();
+                            driver_verification_accessor.put("bus_chasis_no",schasis_no);
+                        }
+                        if(child.getKey().equals("model")){
+                            smodel = child.getValue().toString();
+                            driver_verification_accessor.put("bus_model",smodel);
+                        }
+                        if(child.getKey().equals("number_plate")){
+                            snumber_plate = child.getValue().toString();
+                            driver_verification_accessor.put("bus_number_plate",snumber_plate);
+                        }
+                    }
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void getSchoolinformation(String key) {
